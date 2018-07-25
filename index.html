@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="./d3.js"></script>
+    <style>
+
+      .chart-container {
+        width: 1080px;
+        margin: auto;
+        margin-top: 8%;
+      }
+
+      .chart {
+        width: 1080px;
+        height: 640px;
+        box-shadow: 3px 3px 3px grey;
+      }
+
+      .graph {
+        background-color: black;
+        fill: black;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div class="chart-container">
+      <svg class="chart"></svg>
+    </div>
+
+    <script>
+     
+      // width and height are for the graph itself
+      const margin = { "top": 30, "right": 30, "left": 50, "bottom": 50 },
+            width = 1080 - margin.left - margin.right,
+            height = 640 - margin.top - margin.bottom
+
+      const xScale = d3.scaleBand() 
+                    .range([0, width])
+           
+      const yScale = d3.scaleLinear()
+                    .range([height, 0])
+ 
+      const xAxis = d3.axisBottom(xScale)
+                    .tickSizeOuter(0)
+
+      const yAxis = d3.axisLeft(yScale)
+                    .tickSizeOuter(0)
+
+      const chart = d3.select(".chart")
+                    .attr("width", width + margin.left + margin.right) 
+                    .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                    .attr("class", "graph") 
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")" )
+    
+      d3.json("cyclist-data.json").then( function(jsonData) {
+        // Process data
+        // I think I'll need to use insertion sort on the data.
+       
+        for (let j = 1; j < jsonData.length; j++) {
+          console.log(j)
+          console.log("This is num ", jsonData[j].Year)
+          console.log("Type ", typeof(jsonData[j].Year))
+          let i = j - 1
+          let num = jsonData[j]
+
+          while(i > (-1) && jsonData[i].Year > num.Year) {
+            console.log("Moving")
+            jsonData[i+1] = jsonData[i]
+            i -= 1
+          }
+          console.log("i at the end is ", i)
+          console.log(jsonData[i])
+          console.log(jsonData[i+1])
+          console.log(jsonData[j])
+          jsonData[i+1] = num
+        }
+        console.log("Sorted ", jsonData)
+        return jsonData
+      }).then( function(jsonData) {
+        // Main graphing routine
+        xScale.domain(jsonData.map((d) => d.Year))
+
+        //yscale.domain([0, 
+
+        chart.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+
+      }).catch(function(error) {
+          console.log("Graphing error: ", error.message)
+      })
+
+      
+
+    </script>
+  </body>
+</html>
