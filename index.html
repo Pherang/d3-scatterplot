@@ -9,10 +9,7 @@
         width: 1080px;
         margin: auto;
         margin-top: 8%;
-      }
-
-      .chart {
-        width: 1080px;
+      } .chart { width: 1080px;
         height: 640px;
         box-shadow: 3px 3px 3px grey;
       }
@@ -37,17 +34,21 @@
             width = 1080 - margin.left - margin.right,
             height = 640 - margin.top - margin.bottom
 
-      const xScale = d3.scaleBand() 
+      const parseYear = d3.timeParse("%Y")
+      const formatMinutes = d3.timeFormat("%M:%S")
+      
+      const xScale = d3.scaleTime() 
                     .range([0, width])
            
-      const yScale = d3.scaleLinear()
+      const yScale = d3.scaleTime()
                     .range([height, 0])
  
       const xAxis = d3.axisBottom(xScale)
                     .tickSizeOuter(0)
 
       const yAxis = d3.axisLeft(yScale)
-                    .tickSizeOuter(0)
+                    .tickSizeOuter(10)
+                    .tickFormat(formatMinutes)
 
       const chart = d3.select(".chart")
                     .attr("width", width + margin.left + margin.right) 
@@ -61,9 +62,6 @@
         // I think I'll need to use insertion sort on the data.
        
         for (let j = 1; j < jsonData.length; j++) {
-          console.log(j)
-          console.log("This is num ", jsonData[j].Year)
-          console.log("Type ", typeof(jsonData[j].Year))
           let i = j - 1
           let num = jsonData[j]
 
@@ -72,23 +70,32 @@
             jsonData[i+1] = jsonData[i]
             i -= 1
           }
-          console.log("i at the end is ", i)
-          console.log(jsonData[i])
-          console.log(jsonData[i+1])
-          console.log(jsonData[j])
           jsonData[i+1] = num
         }
-        console.log("Sorted ", jsonData)
+
+        newDate = new Date("2018-01-01T00:"+jsonData[1].Time)
+        console.log(newDate)
+
         return jsonData
       }).then( function(jsonData) {
         // Main graphing routine
-        xScale.domain(jsonData.map((d) => d.Year))
+        xScale.domain(d3.extent(jsonData.map( (d) => parseYear(d.Year) )))
+        //yScale.domain(d3.extent(jsonData.map((d) => parseMinutes(d.Time) )))
+        yScale.domain([d3.max(jsonData.map(function(d) { 
+          return (new Date("2018-01-01T00:"+d.Time))})), d3.min(jsonData.map(function(d) { 
+          return (new Date("2018-01-01T00:"+d.Time))}))]
+        )
 
-        //yscale.domain([0, 
+        console.log(yScale.domain())
+
 
         chart.append("g")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis)
+
+        chart.append("g")
+              .call(yAxis)
+              
 
       }).catch(function(error) {
           console.log("Graphing error: ", error.message)
