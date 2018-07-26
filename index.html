@@ -28,6 +28,10 @@
         font-size: 24px;
       }
 
+      #legend text {
+        font-family: sans-serif;
+      }
+
       #y-axis-label {
         font-size: 14px;
       }
@@ -51,24 +55,25 @@
       const formatMinutes = d3.timeFormat("%M:%S")
       
       const xScale = d3.scaleTime() 
-                    .range([0, width])
+                         .range([0, width])
            
       const yScale = d3.scaleTime()
-                    .range([height, 0])
+                         .range([height, 0])
  
       const xAxis = d3.axisBottom(xScale)
-                    .tickSizeOuter(0)
+                        .tickSizeOuter(0)
 
       const yAxis = d3.axisLeft(yScale)
-                    .tickSizeOuter(10)
-                    .tickFormat(formatMinutes)
+                       .tickSizeOuter(10)
+                       .tickFormat(formatMinutes)
+                       .ticks(20)
 
       let chart = d3.select(".chart")
-                    .attr("width", width + margin.left + margin.right) 
-                    .attr("height", height + margin.top + margin.bottom)
-                  .append("g")
-                    .attr("class", "graph") 
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")" )
+                      .attr("width", width + margin.left + margin.right) 
+                      .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                      .attr("class", "graph") 
+                      .attr("transform", "translate(" + margin.left + "," + margin.top + ")" )
     
       d3.json("cyclist-data.json").then( function(jsonData) {
         // Process data
@@ -95,18 +100,21 @@
         let xDomain = jsonData.map( (d) => parseYear(d.Year))  
         xDomain.unshift(parseYear(xDomain[0].getFullYear() - 1))
         xDomain.push(parseYear(xDomain[xDomain.length-1].getFullYear() + 1))
-
+        
+        // Pad Y axis with 1 minute in each direction
         let yDomain = jsonData.map( (d) => d.Time)
-
+        console.log(jsonData[0].Time.getMinutes() - 1)
+        yDomain.unshift((new Date("2018-01-01T00:" + (jsonData[0].Time.getMinutes() - 1))))
+        yDomain.push((new Date("2018-01-01T00:" + (jsonData[jsonData.length-1].Time.getMinutes() + 1))))
+        console.log(yDomain)
 
         xScale.domain(d3.extent(xDomain))
-        yScale.domain([d3.max(jsonData.map(function(d) { return d.Time})), d3.min(jsonData.map(function(d) { 
-          return d.Time}))])
+        yScale.domain([d3.max(yDomain), d3.min(yDomain)])
 
         d3.select(".chart")
           .append("g")
             .attr("id","title")
-            .attr("transform", "translate(" + width * 0.45 + "," + margin.top + ")")
+            .attr("transform", "translate(" + width * 0.40 + "," + margin.top + ")")
           .append("text")
             .attr("fill", "black")
             .text("Doping up Alpe d'Huez")
@@ -114,7 +122,7 @@
         d3.select(".chart")
          .append("g")
            .attr("id","subtitle")
-           .attr("transform", "translate(" + width * 0.45 + "," + (margin.top + 20) + ")")
+           .attr("transform", "translate(" + width * 0.40 + "," + (margin.top + 25) + ")")
          .append("text")
            .attr("fill", "black")
            .text("The 35 fastest times up the mountain by cycling pros.")
@@ -125,10 +133,10 @@
                          .attr("transform", "translate(" + (width + 20) + "," + (margin.top + 50) + ")")
 
         legend.append("text")
-              .attr("transform", "translate(-15,0)")
-              .attr("text-anchor", "end")
-              .attr("dy", "0.25em")
-              .text("Allegations of Doping")
+          .attr("transform", "translate(-15,0)")
+          .attr("text-anchor", "end")
+          .attr("dy", "0.25em")
+          .text("Allegations of Doping")
 
         legend.append("circle")
           .attr("r", 8)
@@ -146,8 +154,6 @@
           .attr("r", 8)
           .attr("fill", "lightgreen")
           .attr("stroke", "black")
-
-           
             
         chart.append("g")
             .attr("transform", "translate(0," + height + ")")
@@ -159,16 +165,16 @@
           .append("g")
             .attr("id", "y-axis-label")
             .attr("transform", "rotate(-90)")
-            .append("text")
-              .text("Time in Minutes")
-              .attr("fill", "black")
-              .attr("y", -40)
-              .attr("text-anchor", "end")
+          .append("text")
+            .text("Time in Minutes")
+            .attr("fill", "black")
+            .attr("y", -40)
+            .attr("text-anchor", "end")
 
         chart.selectAll(".dot")
           .data(jsonData)
           .enter().append("circle")
-            .attr("cx", function(d) { console.log(d.Year); return xScale(parseYear(d.Year)) })
+            .attr("cx", function(d) { return xScale(parseYear(d.Year)) })
             .attr("cy", function(d) { return yScale(d.Time); })
             .attr("class", "point")
             .attr("r", 6)
@@ -178,8 +184,6 @@
       }).catch(function(error) {
           console.log("Graphing error: ", error.message)
       })
-
-      
 
     </script>
   </body>
