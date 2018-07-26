@@ -8,15 +8,28 @@
       .chart-container {
         width: 1080px;
         margin: auto;
-        margin-top: 8%;
+        margin-top: 5%;
       } .chart { width: 1080px;
         height: 640px;
         box-shadow: 3px 3px 3px grey;
+        background-color: white;
       }
 
       .graph {
         background-color: black;
         fill: black;
+      }
+
+      #title, #subtitle {
+        font-family: sans-serif;
+      }
+
+      #title {
+        font-size: 24px;
+      }
+
+      #y-axis-label {
+        font-size: 14px;
       }
 
     </style>
@@ -30,7 +43,7 @@
     <script>
      
       // width and height are for the graph itself
-      const margin = { "top": 30, "right": 30, "left": 50, "bottom": 50 },
+      const margin = { "top": 30, "right": 30, "left": 70, "bottom": 50 },
             width = 1080 - margin.left - margin.right,
             height = 640 - margin.top - margin.bottom
 
@@ -50,7 +63,7 @@
                     .tickSizeOuter(10)
                     .tickFormat(formatMinutes)
 
-      const chart = d3.select(".chart")
+      let chart = d3.select(".chart")
                     .attr("width", width + margin.left + margin.right) 
                     .attr("height", height + margin.top + margin.bottom)
                   .append("g")
@@ -59,43 +72,101 @@
     
       d3.json("cyclist-data.json").then( function(jsonData) {
         // Process data
-        // I think I'll need to use insertion sort on the data.
-       
+        // I think I'll to use insertion sort on the data.
         for (let j = 1; j < jsonData.length; j++) {
           let i = j - 1
           let num = jsonData[j]
-
+          console.log(typeof(jsonData[j].Year)) 
           while(i > (-1) && jsonData[i].Year > num.Year) {
-            console.log("Moving")
             jsonData[i+1] = jsonData[i]
             i -= 1
           }
           jsonData[i+1] = num
         }
 
-        newDate = new Date("2018-01-01T00:"+jsonData[1].Time)
-        console.log(newDate)
-
+        for (let i = 0; i < jsonData.length; i++) {
+          jsonData[i].Time = (new Date("2018-01-01T00:"+jsonData[i].Time))
+        }
         return jsonData
       }).then( function(jsonData) {
         // Main graphing routine
-        xScale.domain(d3.extent(jsonData.map( (d) => parseYear(d.Year) )))
+        //xScale.domain(d3.extent(jsonData.map( (d) => parseYear(d.Year) )) )
+        xScale.domain([parseYear(1993), parseYear(2016)])
         //yScale.domain(d3.extent(jsonData.map((d) => parseMinutes(d.Time) )))
-        yScale.domain([d3.max(jsonData.map(function(d) { 
-          return (new Date("2018-01-01T00:"+d.Time))})), d3.min(jsonData.map(function(d) { 
-          return (new Date("2018-01-01T00:"+d.Time))}))]
-        )
+        yScale.domain([d3.max(jsonData.map(function(d) { return d.Time})), d3.min(jsonData.map(function(d) { 
+          return d.Time}))])
 
-        console.log(yScale.domain())
+        d3.select(".chart")
+          .append("g")
+            .attr("id","title")
+            .attr("transform", "translate(" + width * 0.45 + "," + margin.top + ")")
+          .append("text")
+            .attr("fill", "black")
+            .text("Doping up Alpe d'Huez")
 
+        d3.select(".chart")
+         .append("g")
+           .attr("id","subtitle")
+           .attr("transform", "translate(" + width * 0.45 + "," + (margin.top + 20) + ")")
+         .append("text")
+           .attr("fill", "black")
+           .text("The 35 fastest times up the mountain by cycling pros.")
 
+        let legend = d3.select(".chart")
+                       .append("g")
+                         .attr("id", "legend")
+                         .attr("transform", "translate(" + (width + 20) + "," + (margin.top + 50) + ")")
+
+        legend.append("text")
+              .attr("transform", "translate(-15,0)")
+              .attr("text-anchor", "end")
+              .attr("dy", "0.25em")
+              .text("Allegations of Doping")
+
+        legend.append("circle")
+          .attr("r", 8)
+          .attr("fill", "orange")
+          .attr("stroke", "black")
+
+        legend.append("text")
+          .attr("transform", "translate(-15,20)")
+          .attr("text-anchor", "end")
+          .attr("dy", "0.25em")
+          .text("No Allegations of Doping")
+
+        legend.append("circle")
+          .attr("transform", "translate(0,20)")
+          .attr("r", 8)
+          .attr("fill", "lightgreen")
+          .attr("stroke", "black")
+
+           
+            
         chart.append("g")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis)
 
         chart.append("g")
-              .call(yAxis)
-              
+            .attr("id", "y-axis")
+            .call(yAxis)
+          .append("g")
+            .attr("id", "y-axis-label")
+            .attr("transform", "rotate(-90)")
+            .append("text")
+              .text("Time in Minutes")
+              .attr("fill", "black")
+              .attr("y", -40)
+              .attr("text-anchor", "end")
+
+        chart.selectAll(".dot")
+          .data(jsonData)
+          .enter().append("circle")
+            .attr("cx", function(d) { console.log(d.Year); return xScale(parseYear(d.Year)) })
+            .attr("cy", function(d) { return yScale(d.Time); })
+            .attr("class", "point")
+            .attr("r", 6)
+            .attr("fill", (d) => (d.Doping ? "orange" : "lightgreen"))
+            .attr("stroke", "black")
 
       }).catch(function(error) {
           console.log("Graphing error: ", error.message)
