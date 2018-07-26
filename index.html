@@ -76,7 +76,6 @@
         for (let j = 1; j < jsonData.length; j++) {
           let i = j - 1
           let num = jsonData[j]
-          console.log(typeof(jsonData[j].Year)) 
           while(i > (-1) && jsonData[i].Year > num.Year) {
             jsonData[i+1] = jsonData[i]
             i -= 1
@@ -87,12 +86,20 @@
         for (let i = 0; i < jsonData.length; i++) {
           jsonData[i].Time = (new Date("2018-01-01T00:"+jsonData[i].Time))
         }
+
         return jsonData
       }).then( function(jsonData) {
         // Main graphing routine
-        //xScale.domain(d3.extent(jsonData.map( (d) => parseYear(d.Year) )) )
-        xScale.domain([parseYear(1993), parseYear(2016)])
-        //yScale.domain(d3.extent(jsonData.map((d) => parseMinutes(d.Time) )))
+
+        // Pad X axis with 1 year in each direction
+        let xDomain = jsonData.map( (d) => parseYear(d.Year))  
+        xDomain.unshift(parseYear(xDomain[0].getFullYear() - 1))
+        xDomain.push(parseYear(xDomain[xDomain.length-1].getFullYear() + 1))
+
+        let yDomain = jsonData.map( (d) => d.Time)
+
+
+        xScale.domain(d3.extent(xDomain))
         yScale.domain([d3.max(jsonData.map(function(d) { return d.Time})), d3.min(jsonData.map(function(d) { 
           return d.Time}))])
 
