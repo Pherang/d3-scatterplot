@@ -2,14 +2,19 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <script src="./d3.js"></script>
+    <script src="./d3.min.js"></script>
+    <script src="https://gitcdn.link/repo/freeCodeCamp/testable-projects-fcc/master/build/bundle.js"></script>
+
     <style>
 
       .chart-container {
         width: 1080px;
         margin: auto;
         margin-top: 5%;
-      } .chart { width: 1080px;
+      } 
+      
+      .chart { 
+        width: 1080px;
         height: 640px;
         box-shadow: 3px 3px 3px grey;
         background-color: white;
@@ -34,6 +39,19 @@
 
       #y-axis-label {
         font-size: 14px;
+      }
+
+      #tooltip {
+        position: absolute;
+        padding: 10px;
+        font-family: sans-serif;
+        background-color: orange;
+        color: black;
+        border: 0px;
+        border-radius: 5px;
+        box-shadow: 3px 3px 3px lightgrey;
+        text-align: left;
+        pointer-events: none;
       }
 
     </style>
@@ -67,6 +85,12 @@
                        .tickSizeOuter(10)
                        .tickFormat(formatMinutes)
                        .ticks(20)
+
+      let tooltip = d3.select("body")
+                      .append("div")
+                        .attr("id", "tooltip")
+                        .style("display", "none")
+                        
 
       let chart = d3.select(".chart")
                       .attr("width", width + margin.left + margin.right) 
@@ -156,6 +180,7 @@
           .attr("stroke", "black")
             
         chart.append("g")
+            .attr("id", "x-axis")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis)
 
@@ -174,16 +199,46 @@
         chart.selectAll(".dot")
           .data(jsonData)
           .enter().append("circle")
+            .attr("data-xvalue", (d) => parseYear(d.Year))
+            .attr("data-yvalue", (d) => (d.Time))
             .attr("cx", function(d) { return xScale(parseYear(d.Year)) })
             .attr("cy", function(d) { return yScale(d.Time); })
-            .attr("class", "point")
+            .attr("class", "dot")
             .attr("r", 6)
             .attr("fill", (d) => (d.Doping ? "orange" : "lightgreen"))
             .attr("stroke", "black")
+            .on("mouseover", showTooltip)
+            .on("mouseout", hideTooltip)
 
       }).catch(function(error) {
           console.log("Graphing error: ", error.message)
       })
+
+      function showTooltip(d) {
+
+        tooltip
+          .style("background-color", () => (d.Doping ? "orange" : "lightgreen"))
+          .style("left", (d3.event.pageX + 20) + "px")
+          .style("top", (d3.event.pageY -5) + "px")
+          .attr("data-year", () =>  parseYear(d.Year))
+          .html(d.Name + 
+            "<br>" + "Country: " + d.Nationality +
+            "<br>" + "Race Time: " + formatMinutes(d.Time) + 
+            "<br>" + "Year: " + d.Year +
+            "<br>" + d.Doping
+          )
+  
+        tooltip.transition()
+              .duration(500)
+              .style("opacity", 0.9)
+              .style("display", "inline")
+      }
+
+      function hideTooltip() {
+        tooltip.transition()
+          .duration(300)
+          .style("opacity", 0)
+      }
 
     </script>
   </body>
