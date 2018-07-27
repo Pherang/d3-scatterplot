@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <script src="./d3.min.js"></script>
-    <script src="https://gitcdn.link/repo/freeCodeCamp/testable-projects-fcc/master/build/bundle.js"></script>
+    <script src="./bundle.js"></script>
 
     <style>
 
@@ -127,10 +127,8 @@
         
         // Pad Y axis with 1 minute in each direction
         let yDomain = jsonData.map( (d) => d.Time)
-        console.log(jsonData[0].Time.getMinutes() - 1)
         yDomain.unshift((new Date("2018-01-01T00:" + (jsonData[0].Time.getMinutes() - 1))))
         yDomain.push((new Date("2018-01-01T00:" + (jsonData[jsonData.length-1].Time.getMinutes() + 1))))
-        console.log(yDomain)
 
         xScale.domain(d3.extent(xDomain))
         yScale.domain([d3.max(yDomain), d3.min(yDomain)])
