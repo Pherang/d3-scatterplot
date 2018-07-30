@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <script src="./d3.min.js"></script>
-    <script src="./bundle.js"></script>
+    
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
 
     <style>
 
@@ -15,7 +16,7 @@
       
       .chart { 
         width: 1080px;
-        height: 640px;
+        height: 740px;
         box-shadow: 3px 3px 3px grey;
         background-color: white;
       }
@@ -65,9 +66,9 @@
     <script>
      
       // width and height are for the graph itself
-      const margin = { "top": 30, "right": 30, "left": 70, "bottom": 50 },
+      const margin = { "top": 30, "right": 30, "left": 70, "bottom": 100 },
             width = 1080 - margin.left - margin.right,
-            height = 640 - margin.top - margin.bottom
+            height = 740 - margin.top - margin.bottom
 
       const parseYear = d3.timeParse("%Y")
       const formatMinutes = d3.timeFormat("%M:%S")
@@ -148,6 +149,12 @@
          .append("text")
            .attr("fill", "black")
            .text("The 35 fastest times up the mountain by cycling pros.")
+
+        d3.select(".chart")
+          .append("g")
+            .attr("transform", "translate(" + width * 0.99 + "," + (height + margin.top + margin.bottom / 2) + ")")
+          .append("text")
+          .html("Source: " + "<a href='https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json'>FCC</a>") 
 
         let legend = d3.select(".chart")
                        .append("g")
